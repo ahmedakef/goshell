@@ -1,0 +1,16 @@
+package main
+
+import "fmt"
+
+{{functions}}
+
+func main() {
+	{{commands}}
+}
+
+// used to avoid "declared and not used" error
+func use(vals ...interface{}) {
+    for _, val := range vals {
+        _ = val
+    }
+}
