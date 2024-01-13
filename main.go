@@ -14,7 +14,7 @@ const (
 	.q(uit)		exit Go Shell
 	.v(ars)		show all variable names
 	.s(ource)	print the source entered since startup
-	.u(ndo)	    undo the last entry
+	.u(ndo)	        undo the last entry
 	.h(elp)		print this help message
 	`
 )
@@ -39,19 +39,35 @@ func main() {
 			manager.cleanUp()
 			return
 		case command := <-commandsChan:
-			if command == "show" {
+			switch command {
+			case ".quit", ".q":
+				manager.cleanUp()
+				return
+			case ".vars", ".v":
+				fmt.Println(manager.getVariables())
+				continueChan <- true
+				continue
+			case ".source", ".s":
 				fmt.Println(manager.getProgram())
 				continueChan <- true
 				continue
-			}
-			manager.addInput(command)
-			err := manager.runProgram()
-			if err != nil {
-				fmt.Println("Removing last input, type 'show' to see the program.")
+			case ".undo", ".u":
 				manager.removeLastInput()
+				continueChan <- true
+				continue
+			case ".help", ".h":
+				fmt.Println(helpMessage)
+				continueChan <- true
+				continue
+			default:
+				manager.addInput(command)
+				err := manager.runProgram()
+				if err != nil {
+					fmt.Println("Removing last input, type '.s(ource)' to see the program.")
+					manager.removeLastInput()
+				}
+				continueChan <- true
 			}
-			continueChan <- true
-
 		}
 	}
 }

@@ -24,3 +24,15 @@ func getNewVariables(command string) []string {
 	variables := strings.Split(variableSection, ",")
 	return variables
 }
+
+func isFunctionDeclaration(command string) bool {
+	return strings.HasPrefix(command, "func")
+}
+
+func isExperimentalInput(command string) bool {
+	containsAssignment := strings.ContainsAny(command, ":=")
+	if containsAssignment || isFunctionDeclaration(command) {
+		return false
+	}
+	return true
+}
