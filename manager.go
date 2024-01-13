@@ -60,12 +60,15 @@ func (m *Manager) removeLastInput() {
 }
 
 func (m *Manager) runProgram() error {
-	commands := m.commands
+	commands := make([]string, len(m.commands)+1)
 	lastElementIndex := len(m.commands) - 1
+	copy(commands, m.commands) // copy to avoid modifying the original slice
 	if isExperimentalInput(m.commands[lastElementIndex]) {
-		commands = append(m.commands[:lastElementIndex], commandPrintted(m.commands[lastElementIndex]))
+		commands[lastElementIndex] = commandPrintted(m.commands[lastElementIndex])
+		m.commands = m.commands[:lastElementIndex]
 	}
 	commands = append(commands, m.useCall())
+
 	program, err := prepareProgram(m.templatePath, commands, m.functions)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -103,24 +106,16 @@ func (m *Manager) getProgram() string {
 	return program
 }
 
+func (m *Manager) getVariables() []string {
+	return m.variables
+}
+
 func (m *Manager) useCall() string {
 	return fmt.Sprintf("use(%s)", strings.Join(m.variables, ", "))
 }
 
 func commandPrintted(command string) string {
 	return fmt.Sprintf("fmt.Println(%s)", command)
-}
-
-func isFunctionDeclaration(command string) bool {
-	return strings.HasPrefix(command, "func")
-}
-
-func isExperimentalInput(command string) bool {
-	containsColon := strings.Contains(command, ":=")
-	if containsColon || isFunctionDeclaration(command) {
-		return false
-	}
-	return true
 }
 
 func (m *Manager) cleanUp() {
