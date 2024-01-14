@@ -22,6 +22,9 @@ func containsNewDeclarations(command string) bool {
 func getNewVariables(command string) []string {
 	variableSection := strings.Split(command, ":=")[0]
 	variables := strings.Split(variableSection, ",")
+	for i, variable := range variables {
+		variables[i] = strings.TrimSpace(variable)
+	}
 	return variables
 }
 
@@ -29,9 +32,13 @@ func isFunctionDeclaration(command string) bool {
 	return strings.HasPrefix(command, "func")
 }
 
+func isVarDeclaration(command string) bool {
+	return strings.HasPrefix(command, "var")
+}
+
 func isExperimentalInput(command string) bool {
 	containsAssignment := strings.ContainsAny(command, ":=")
-	if containsAssignment || isFunctionDeclaration(command) {
+	if containsAssignment || isFunctionDeclaration(command) || isVarDeclaration(command) {
 		return false
 	}
 	return true

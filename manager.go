@@ -16,7 +16,7 @@ const (
 type Manager struct {
 	commands            []string
 	functions           []string
-	variables           []string
+	variables           map[string]struct{}
 	lastCommandFunction bool
 	programPath         string
 	templatePath        string
@@ -26,6 +26,7 @@ func newManager() *Manager {
 	return &Manager{
 		commands:     []string{},
 		functions:    []string{},
+		variables:    make(map[string]struct{}),
 		programPath:  _programPath,
 		templatePath: _templatePath,
 	}
@@ -41,7 +42,9 @@ func (m *Manager) addInput(input string) {
 
 func (m *Manager) addCommand(command string) {
 	command, newVariables := processCommand(command)
-	m.variables = append(m.variables, newVariables...)
+	for _, variable := range newVariables {
+		m.variables[variable] = struct{}{}
+	}
 	m.commands = append(m.commands, command)
 
 	m.lastCommandFunction = false
@@ -55,7 +58,12 @@ func (m *Manager) removeLastInput() {
 	if m.lastCommandFunction {
 		m.functions = m.functions[:len(m.functions)-1]
 	} else {
-		m.commands = m.commands[:len(m.commands)-1]
+		lastElementIndex := len(m.commands) - 1
+		deleteVariables := getNewVariables(m.commands[lastElementIndex])
+		for _, variable := range deleteVariables {
+			delete(m.variables, variable)
+		}
+		m.commands = m.commands[:lastElementIndex]
 	}
 }
 
@@ -107,11 +115,15 @@ func (m *Manager) getProgram() string {
 }
 
 func (m *Manager) getVariables() []string {
-	return m.variables
+	variables := make([]string, 0, len(m.variables))
+	for variable := range m.variables {
+		variables = append(variables, variable)
+	}
+	return variables
 }
 
 func (m *Manager) useCall() string {
-	return fmt.Sprintf("use(%s)", strings.Join(m.variables, ", "))
+	return fmt.Sprintf("use(%s)", strings.Join(m.getVariables(), ", "))
 }
 
 func commandPrintted(command string) string {
