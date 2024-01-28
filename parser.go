@@ -62,7 +62,3 @@ func (av *AstVisitor) Visit(node ast.Node) ast.Visitor {
 func isFunctionDeclaration(statement string) bool {
 	return strings.HasPrefix(statement, "func")
 }
-
-func isExperimentalInput(av *AstVisitor) bool {
-	return av.IsExpression
-}
