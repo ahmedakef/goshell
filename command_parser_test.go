@@ -32,10 +32,6 @@ func TestParse(t *testing.T) {
 			input:            "a = 1",
 			expectedAssigned: []string{"a"},
 		},
-		{
-			name:  "function declaration",
-			input: "func add(a int, b int) int { return a + b }",
-		},
 	}
 
 	for _, tt := range tests {

@@ -43,6 +43,16 @@ func TestManager_RunProgram(t *testing.T) {
 			expectedOutput: "3\n",
 			expectedError:  nil,
 		},
+		{
+			name: "assignment, experiment, function declaration",
+			input: []string{
+				"a:=1",
+				"a",
+				"func add(a int, b int) int { return a+b }",
+			},
+			expectedOutput: "",
+			expectedError:  nil,
+		},
 	}
 
 	for _, tt := range tests {
