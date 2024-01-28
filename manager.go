@@ -111,17 +111,14 @@ func (m *Manager) prepareCommands() []command {
 		if !commands[i].isExpression {
 			continue
 		}
-		if strings.HasPrefix(commands[i].Src, "fmt.Print") {
-			continue
-		}
-		if i < len(commands)-1 {
+		if i < len(commands)-1 || m.lastInputFunctionDef {
 			commands[i].Hidden = true
 			continue
 		}
-		if !m.lastInputFunctionDef {
-			commands[i].Src = commandPrintted(commands[i].Src)
+		if strings.HasPrefix(commands[i].Src, "fmt.Print") {
 			continue
 		}
+		commands[i].Src = commandPrintted(commands[i].Src)
 	}
 	commands = append(commands, m.useCallStatement())
 	return commands
