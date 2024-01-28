@@ -4,9 +4,9 @@ package main
 {{end}}
 func main() {
 	{{- range .commands}}
-        {{if not .Hidden}}
-            {{- .Src -}}
-        {{end}}
+        {{- if not .Hidden}}
+            {{.Src -}}
+        {{end -}}
     {{end}}
 }
 
