@@ -48,3 +48,34 @@ func TestParse(t *testing.T) {
 		})
 	}
 }
+
+func TestParseFunction(t *testing.T) {
+	tests := []struct {
+		name           string
+		input          string
+		expectedName   string
+		expectedReturn []string
+		expectedError  error
+	}{
+		{
+			name:           "valid expression",
+			input:          "func add(a int, b int) int { return a+b }",
+			expectedName:   "add",
+			expectedReturn: []string{"int"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := ParseFunction(tt.input)
+			if tt.expectedError != nil {
+				assert.Equal(t, tt.expectedError, err)
+				return
+			}
+			assert.NoError(t, err)
+
+			assert.Equal(t, tt.expectedName, result.Name)
+			assert.Equal(t, tt.expectedReturn, result.returnVariables)
+		})
+	}
+}

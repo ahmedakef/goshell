@@ -19,9 +19,16 @@ type command struct {
 	isExpression      bool
 	Hidden            bool
 }
+
+type function struct {
+	Name            string
+	Src             string
+	returnVariables []string
+}
+
 type Manager struct {
 	commands             []command
-	functions            []string
+	functions            []function
 	lastInputFunctionDef bool
 	programPath          string
 	templatePath         string
@@ -30,7 +37,7 @@ type Manager struct {
 func newManager(programPath string) *Manager {
 	return &Manager{
 		commands:     []command{},
-		functions:    []string{},
+		functions:    []function{},
 		programPath:  programPath,
 		templatePath: _templatePath,
 	}
@@ -38,29 +45,43 @@ func newManager(programPath string) *Manager {
 
 func (m *Manager) addInput(input string) error {
 	if isFunctionDeclaration(input) {
-		m.addFunction(input)
+		err := m.addFunction(input)
+		if err != nil {
+			return err
+		}
 		m.lastInputFunctionDef = true
 		return nil
 	}
-	av, err := ParseStatement(input)
+
+	err := m.addCommand(input)
 	if err != nil {
 		return err
 	}
-	m.addCommand(input, av)
 	m.lastInputFunctionDef = false
 	return nil
 }
 
-func (m *Manager) addCommand(src string, av *AstVisitor) {
+func (m *Manager) addCommand(input string) error {
+	av, err := ParseStatement(input)
+	if err != nil {
+		return err
+	}
 	m.commands = append(m.commands, command{
-		Src:               src,
+		Src:               input,
 		variablesAssigned: av.VariablesAssigned,
 		variablesDeclared: av.VariablesDeclared,
 		isExpression:      av.IsExpression,
 	})
+	return nil
 }
-func (m *Manager) addFunction(function string) {
+
+func (m *Manager) addFunction(input string) error {
+	function, err := ParseFunction(input)
+	if err != nil {
+		return err
+	}
 	m.functions = append(m.functions, function)
+	return nil
 }
 
 func (m *Manager) removeLastInput() {
