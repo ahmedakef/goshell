@@ -9,7 +9,6 @@ import (
 )
 
 const (
-	_programPath  = "program.go"
 	_templatePath = "template.txt"
 )
 
@@ -27,11 +26,11 @@ type Manager struct {
 	templatePath         string
 }
 
-func newManager() *Manager {
+func newManager(programPath string) *Manager {
 	return &Manager{
 		commands:     []command{},
 		functions:    []string{},
-		programPath:  _programPath,
+		programPath:  programPath,
 		templatePath: _templatePath,
 	}
 }
@@ -71,12 +70,12 @@ func (m *Manager) removeLastInput() {
 	}
 }
 
-func (m *Manager) runProgram() error {
+func (m *Manager) runProgram() (string, error) {
 	commands := make([]command, len(m.commands)+1)
 	copy(commands, m.commands)
 
 	for i := range commands {
-		if commands[i].isExpression {
+		if commands[i].isExpression && !strings.HasPrefix(commands[i].Src, "fmt.Print") {
 			commands[i].Src = commandPrintted(commands[i].Src)
 		}
 	}
@@ -84,30 +83,27 @@ func (m *Manager) runProgram() error {
 
 	program, err := prepareProgram(m.templatePath, commands, m.functions)
 	if err != nil {
-		fmt.Println("Error:", err)
+		return "", err
 	}
 
 	// Save the substituted template to the output file
 	err = os.WriteFile(m.programPath, []byte(program), fs.FileMode(0644))
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = formatProgram(m.programPath)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	cmd := exec.Command("go", "run", m.programPath)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Println(string(output))
-		return err
+		return "", err
 	}
-	if len(output) > 0 {
-		fmt.Print(string(output))
-	}
-	return nil
+	return string(output), nil
 }
 
 func (m *Manager) getProgram() string {
