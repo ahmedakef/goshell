@@ -17,6 +17,7 @@ type command struct {
 	variablesAssigned []string
 	variablesDeclared []string
 	isExpression      bool
+	Hidden            bool
 }
 type Manager struct {
 	commands             []command
@@ -71,16 +72,7 @@ func (m *Manager) removeLastInput() {
 }
 
 func (m *Manager) runProgram() (string, error) {
-	commands := make([]command, len(m.commands)+1)
-	copy(commands, m.commands)
-
-	for i := range commands {
-		if commands[i].isExpression && !strings.HasPrefix(commands[i].Src, "fmt.Print") {
-			commands[i].Src = commandPrintted(commands[i].Src)
-		}
-	}
-	commands = append(commands, m.useCallStatement())
-
+	commands := m.prepareCommands()
 	program, err := prepareProgram(m.templatePath, commands, m.functions)
 	if err != nil {
 		return "", err
@@ -106,13 +98,33 @@ func (m *Manager) runProgram() (string, error) {
 	return string(output), nil
 }
 
-func (m *Manager) getProgram() string {
-	commands := append(m.commands, m.useCallStatement())
-	program, err := prepareProgram(m.templatePath, commands, m.functions)
-	if err != nil {
-		fmt.Println("Error:", err)
+func (m *Manager) getProgram() (string, error) {
+	commands := m.prepareCommands()
+	return prepareProgram(m.templatePath, commands, m.functions)
+}
+
+func (m *Manager) prepareCommands() []command {
+	commands := make([]command, len(m.commands))
+	copy(commands, m.commands)
+
+	for i := range commands {
+		if !commands[i].isExpression {
+			continue
+		}
+		if strings.HasPrefix(commands[i].Src, "fmt.Print") {
+			continue
+		}
+		if i < len(commands)-1 {
+			commands[i].Hidden = true
+			continue
+		}
+		if !m.lastInputFunctionDef {
+			commands[i].Src = commandPrintted(commands[i].Src)
+			continue
+		}
 	}
-	return program
+	commands = append(commands, m.useCallStatement())
+	return commands
 }
 
 func (m *Manager) extractVariables() []string {

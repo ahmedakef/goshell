@@ -1,14 +1,12 @@
 package main
-
-import "fmt"
 {{range .functions}}
     {{.}}
 {{end}}
-
-
 func main() {
 	{{- range .commands}}
-    {{.Src -}}
+        {{if not .Hidden}}
+            {{- .Src -}}
+        {{end}}
     {{end}}
 }
 

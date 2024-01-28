@@ -8,7 +8,6 @@ import (
 
 func prepareProgram(templatePath string, commands []command, functions []string) (string, error) {
 	// Read the template file
-
 	t := template.Must(template.New("template.txt").ParseFiles(templatePath))
 	var buf bytes.Buffer
 	err := t.Execute(&buf, map[string]interface{}{

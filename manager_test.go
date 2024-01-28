@@ -32,6 +32,17 @@ func TestManager_RunProgram(t *testing.T) {
 			expectedOutput: "5\n",
 			expectedError:  nil,
 		},
+		{
+			name: "declation then experiment",
+			input: []string{
+				"a:=1",
+				"a",
+				"a=3",
+				"a",
+			},
+			expectedOutput: "3\n",
+			expectedError:  nil,
+		},
 	}
 
 	for _, tt := range tests {
