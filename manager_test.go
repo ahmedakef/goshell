@@ -2,7 +2,10 @@ package main
 
 import (
 	"os"
+	"path"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestManager_RunProgram(t *testing.T) {
@@ -13,9 +16,20 @@ func TestManager_RunProgram(t *testing.T) {
 		expectedError  error
 	}{
 		{
-			name:           "Test case 1",
-			input:          []string{"fmt.Println(\"Hello, World!\")"},
-			expectedOutput: "Hello, World!\n",
+			name: "simple addition",
+			input: []string{
+				"1+1",
+			},
+			expectedOutput: "2\n",
+			expectedError:  nil,
+		},
+		{
+			name: "function declaration and call",
+			input: []string{
+				"func add(a int, b int) int { return a+b }",
+				"add(2,3)",
+			},
+			expectedOutput: "5\n",
 			expectedError:  nil,
 		},
 	}
@@ -30,15 +44,14 @@ func TestManager_RunProgram(t *testing.T) {
 			defer os.RemoveAll(tempDir)
 
 			// Create a Manager instance
-			m := newManager()
+			m := newManager(path.Join(tempDir, "program.go"))
 
 			for _, input := range tt.input {
 				m.addInput(input)
 			}
-			err = m.runProgram()
-			if err != tt.expectedError {
-				t.Fatalf("Expected error: %v, but got: %v", tt.expectedError, err)
-			}
+			output, err := m.runProgram()
+			assert.Equal(t, tt.expectedError, err)
+			assert.Equal(t, tt.expectedOutput, output)
 
 		})
 	}

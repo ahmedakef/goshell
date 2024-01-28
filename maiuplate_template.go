@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
-	"html/template"
 	"os/exec"
+	"text/template"
 )
 
 func prepareProgram(templatePath string, commands []command, functions []string) (string, error) {

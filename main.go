@@ -17,6 +17,8 @@ const (
 	.u(ndo)	        undo the last entry
 	.h(elp)		print this help message
 	`
+
+	_programPath = "program.go"
 )
 
 func main() {
@@ -28,7 +30,7 @@ func main() {
 	continueChan <- true
 	go waitForInput(commandsChan, continueChan, done)
 
-	manager := newManager()
+	manager := newManager(_programPath)
 	manager.cleanUp()
 
 	fmt.Println(startUpMessage)
@@ -66,10 +68,13 @@ func main() {
 					continueChan <- true
 					continue
 				}
-				err = manager.runProgram()
+				output, err := manager.runProgram()
 				if err != nil {
 					fmt.Println("Removing last input, type '.s(ource)' to see the program.")
 					manager.removeLastInput()
+				}
+				if output != "" {
+					fmt.Println(output)
 				}
 				continueChan <- true
 			}
