@@ -7,6 +7,27 @@ import (
 	"strings"
 )
 
+func ParseFunction(x string) (function, error) {
+	function := function{
+		Src: x,
+	}
+	code := "package p;" + x
+	file, err := parser.ParseFile(token.NewFileSet(), "", code, 0)
+	if err != nil {
+		return function, err
+	}
+	funcDecl := file.Decls[0].(*ast.FuncDecl)
+	function.Name = funcDecl.Name.Name
+	returnVariables := funcDecl.Type.Results.List
+	for _, variable := range returnVariables {
+		ident, ok := variable.Type.(*ast.Ident)
+		if ok {
+			function.returnVariables = append(function.returnVariables, ident.Name)
+		}
+	}
+	return function, nil
+}
+
 // ParseStatement is a modified version of go/parser.ParseExpr
 func ParseStatement(x string) (*AstVisitor, error) {
 	// parse x within the context of a complete package for correct scopes;

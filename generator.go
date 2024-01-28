@@ -6,7 +6,7 @@ import (
 	"text/template"
 )
 
-func prepareProgram(templatePath string, commands []command, functions []string) (string, error) {
+func prepareProgram(templatePath string, commands []command, functions []function) (string, error) {
 	// Read the template file
 	t := template.Must(template.New("template.txt").ParseFiles(templatePath))
 	var buf bytes.Buffer
