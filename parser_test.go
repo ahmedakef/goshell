@@ -47,5 +47,4 @@ func TestParse(t *testing.T) {
 			assert.Equal(t, tt.expectedDeclared, av.VariablesDeclared)
 		})
 	}
-	assert.False(t, true)
 }
