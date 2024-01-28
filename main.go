@@ -50,7 +50,12 @@ func main() {
 				continueChan <- true
 				continue
 			case ".source", ".s":
-				fmt.Println(manager.getProgram())
+				program, err := manager.getProgram()
+				if err != nil {
+					fmt.Println("Error:", err)
+				} else {
+					fmt.Println(program)
+				}
 				continueChan <- true
 				continue
 			case ".undo", ".u":
@@ -74,7 +79,7 @@ func main() {
 					manager.removeLastInput()
 				}
 				if output != "" {
-					fmt.Println(output)
+					fmt.Print(output)
 				}
 				continueChan <- true
 			}
