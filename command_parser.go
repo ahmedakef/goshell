@@ -1,45 +1,68 @@
 package main
 
 import (
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"strings"
 )
 
-func processCommand(command string) (string, []string) {
-	if !containsNewDeclarations(command) {
-		return command, nil
+// ParseStatement is a modified version of go/parser.ParseExpr
+func ParseStatement(x string) (*AstVisitor, error) {
+	// parse x within the context of a complete package for correct scopes;
+	// put x alone on a separate line (handles line comments), followed by a ';'
+	// to force an error if the expression is incomplete
+
+	var node ast.Node
+	code := "package p;func _(){" + x + "\n;}"
+	file, err := parser.ParseFile(token.NewFileSet(), "", code, 0)
+	if err != nil {
+		return nil, err
 	}
-	// new variables are declared but not used
-	// call use on them to avoid "declared and not used" error
+	node = file.Decls[0].(*ast.FuncDecl).Body.List[0]
 
-	newVariables := getNewVariables(command)
-	return command, newVariables
+	av := new(AstVisitor)
+	ast.Walk(av, node)
+	return av, nil
 }
 
-func containsNewDeclarations(command string) bool {
-	return strings.Contains(command, ":=")
+// AstVisitor implements a ast.Visitor and collect variable and import info
+type AstVisitor struct {
+	VariablesAssigned []string
+	VariablesDeclared []string
+	Imports           []string
+	Functions         []string
+	IsExpression      bool
 }
 
-func getNewVariables(command string) []string {
-	variableSection := strings.Split(command, ":=")[0]
-	variables := strings.Split(variableSection, ",")
-	for i, variable := range variables {
-		variables[i] = strings.TrimSpace(variable)
+// Visit inspects the type of a Node to detect a Assignment, Declaration or Import
+func (av *AstVisitor) Visit(node ast.Node) ast.Visitor {
+	switch node := node.(type) {
+	case *ast.AssignStmt:
+		for _, each := range node.Lhs {
+			av.VariablesAssigned = append(av.VariablesAssigned, each.(*ast.Ident).Name)
+		}
+	case *ast.DeclStmt:
+		for _, each := range node.Decl.(*ast.GenDecl).Specs {
+			valueSpec, ok := each.(*ast.ValueSpec)
+			if ok {
+				for _, other := range valueSpec.Names {
+					av.VariablesDeclared = append(av.VariablesDeclared, other.Name)
+				}
+			}
+		}
+	case *ast.ImportSpec:
+		av.Imports = append(av.Imports, node.Path.Value)
+	case *ast.ExprStmt:
+		av.IsExpression = true
 	}
-	return variables
+	return av
 }
 
-func isFunctionDeclaration(command string) bool {
-	return strings.HasPrefix(command, "func")
+func isFunctionDeclaration(statement string) bool {
+	return strings.HasPrefix(statement, "func")
 }
 
-func isVarDeclaration(command string) bool {
-	return strings.HasPrefix(command, "var")
-}
-
-func isExperimentalInput(command string) bool {
-	containsAssignment := strings.ContainsAny(command, ":=")
-	if containsAssignment || isFunctionDeclaration(command) || isVarDeclaration(command) {
-		return false
-	}
-	return true
+func isExperimentalInput(av *AstVisitor) bool {
+	return av.IsExpression
 }

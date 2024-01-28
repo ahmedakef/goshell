@@ -1,10 +1,15 @@
 package main
 
 import "fmt"
-{{functions}}
+{{range .functions}}
+    {{.}}
+{{end}}
+
 
 func main() {
-	{{commands}}
+	{{- range .commands}}
+    {{.Src -}}
+    {{end}}
 }
 
 // used to avoid "declared and not used" error
