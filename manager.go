@@ -13,10 +13,15 @@ const (
 	_templatePath = "template.txt"
 )
 
+type command struct {
+	Src               string
+	variablesAssigned []string
+	variablesDeclared []string
+	isExpression      bool
+}
 type Manager struct {
-	commands             []string
+	commands             []command
 	functions            []string
-	variables            map[string]struct{}
 	lastInputFunctionDef bool
 	programPath          string
 	templatePath         string
@@ -24,62 +29,59 @@ type Manager struct {
 
 func newManager() *Manager {
 	return &Manager{
-		commands:     []string{},
+		commands:     []command{},
 		functions:    []string{},
-		variables:    make(map[string]struct{}),
 		programPath:  _programPath,
 		templatePath: _templatePath,
 	}
 }
 
-func (m *Manager) addInput(input string) {
+func (m *Manager) addInput(input string) error {
 	if isFunctionDeclaration(input) {
 		m.addFunction(input)
-		return
+		m.lastInputFunctionDef = true
+		return nil
 	}
-	m.addCommand(input)
+	av, err := ParseStatement(input)
+	if err != nil {
+		return err
+	}
+	m.addCommand(input, av)
+	m.lastInputFunctionDef = false
+	return nil
 }
 
-func (m *Manager) addCommand(command string) {
-	command, newVariables := processCommand(command)
-	for _, variable := range newVariables {
-		m.variables[variable] = struct{}{}
-	}
-	m.commands = append(m.commands, command)
-
-	m.lastInputFunctionDef = false
+func (m *Manager) addCommand(src string, av *AstVisitor) {
+	m.commands = append(m.commands, command{
+		Src:               src,
+		variablesAssigned: av.VariablesAssigned,
+		variablesDeclared: av.VariablesDeclared,
+		isExpression:      av.IsExpression,
+	})
 }
 func (m *Manager) addFunction(function string) {
 	m.functions = append(m.functions, function)
-	m.lastInputFunctionDef = true
 }
 
 func (m *Manager) removeLastInput() {
 	if m.lastInputFunctionDef {
 		m.functions = m.functions[:len(m.functions)-1]
 	} else {
-		lastElementIndex := len(m.commands) - 1
-		deleteVariables := getNewVariables(m.commands[lastElementIndex])
-		for _, variable := range deleteVariables {
-			delete(m.variables, variable)
-		}
-		m.commands = m.commands[:lastElementIndex]
+		m.commands = m.commands[:len(m.commands)-1]
 	}
 }
 
 func (m *Manager) runProgram() error {
-	commands := make([]string, len(m.commands)+1)
-	copy(commands, m.commands) // copy to avoid modifying the original slice
-	if !m.lastInputFunctionDef {
-		lastElementIndex := len(m.commands) - 1
-		if isExperimentalInput(m.commands[lastElementIndex]) {
-			commands[lastElementIndex] = commandPrintted(m.commands[lastElementIndex])
-			m.commands = m.commands[:lastElementIndex]
+	commands := make([]command, len(m.commands)+1)
+	copy(commands, m.commands)
+
+	for i := range commands {
+		if commands[i].isExpression {
+			commands[i].Src = commandPrintted(commands[i].Src)
 		}
 	}
-	if len(m.variables) > 0 {
-		commands = append(commands, m.useCall())
-	}
+	commands = append(commands, m.useCallStatement())
+
 	program, err := prepareProgram(m.templatePath, commands, m.functions)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -109,7 +111,7 @@ func (m *Manager) runProgram() error {
 }
 
 func (m *Manager) getProgram() string {
-	commands := append(m.commands, m.useCall())
+	commands := append(m.commands, m.useCallStatement())
 	program, err := prepareProgram(m.templatePath, commands, m.functions)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -117,16 +119,24 @@ func (m *Manager) getProgram() string {
 	return program
 }
 
-func (m *Manager) getVariables() []string {
-	variables := make([]string, 0, len(m.variables))
-	for variable := range m.variables {
-		variables = append(variables, variable)
+func (m *Manager) extractVariables() []string {
+	variables := []string{}
+	for _, command := range m.commands {
+		variables = append(variables, command.variablesDeclared...)
+		variables = append(variables, command.variablesAssigned...)
 	}
 	return variables
 }
 
-func (m *Manager) useCall() string {
-	return fmt.Sprintf("use(%s)", strings.Join(m.getVariables(), ", "))
+func (m *Manager) useCallStatement() command {
+	variables := m.extractVariables()
+	if len(variables) == 0 {
+		return command{}
+	}
+	return command{
+		Src:          fmt.Sprintf("use(%s)", strings.Join(variables, ", ")),
+		isExpression: true,
+	}
 }
 
 func commandPrintted(command string) string {

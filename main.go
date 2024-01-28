@@ -44,7 +44,7 @@ func main() {
 				manager.cleanUp()
 				return
 			case ".vars", ".v":
-				fmt.Println(manager.getVariables())
+				fmt.Println(manager.extractVariables())
 				continueChan <- true
 				continue
 			case ".source", ".s":
@@ -60,8 +60,13 @@ func main() {
 				continueChan <- true
 				continue
 			default:
-				manager.addInput(command)
-				err := manager.runProgram()
+				err := manager.addInput(command)
+				if err != nil {
+					fmt.Println("Error:", err)
+					continueChan <- true
+					continue
+				}
+				err = manager.runProgram()
 				if err != nil {
 					fmt.Println("Removing last input, type '.s(ource)' to see the program.")
 					manager.removeLastInput()
