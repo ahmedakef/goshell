@@ -18,6 +18,8 @@ type command struct {
 	variablesDeclared []string
 	isExpression      bool
 	Hidden            bool
+	isCallExpression  bool
+	calleeName        string
 }
 
 type function struct {
@@ -29,6 +31,7 @@ type function struct {
 type Manager struct {
 	commands             []command
 	functions            []function
+	functionsIndex       map[string]function
 	lastInputFunctionDef bool
 	programPath          string
 	templatePath         string
@@ -36,10 +39,11 @@ type Manager struct {
 
 func newManager(programPath string) *Manager {
 	return &Manager{
-		commands:     []command{},
-		functions:    []function{},
-		programPath:  programPath,
-		templatePath: _templatePath,
+		commands:       []command{},
+		functions:      []function{},
+		functionsIndex: map[string]function{},
+		programPath:    programPath,
+		templatePath:   _templatePath,
 	}
 }
 
@@ -71,6 +75,8 @@ func (m *Manager) addCommand(input string) error {
 		variablesAssigned: av.VariablesAssigned,
 		variablesDeclared: av.VariablesDeclared,
 		isExpression:      av.IsExpression,
+		isCallExpression:  av.callExpression,
+		calleeName:        av.calleeName,
 	})
 	return nil
 }
@@ -81,11 +87,14 @@ func (m *Manager) addFunction(input string) error {
 		return err
 	}
 	m.functions = append(m.functions, function)
+	m.functionsIndex[function.Name] = function
 	return nil
 }
 
 func (m *Manager) removeLastInput() {
 	if m.lastInputFunctionDef {
+		functionName := m.functions[len(m.functions)-1].Name
+		delete(m.functionsIndex, functionName)
 		m.functions = m.functions[:len(m.functions)-1]
 	} else {
 		m.commands = m.commands[:len(m.commands)-1]
@@ -140,6 +149,12 @@ func (m *Manager) prepareCommands() []command {
 		if strings.HasPrefix(commands[i].Src, "fmt.Print") {
 			// expression already contain printing
 			continue
+		}
+		if commands[i].isCallExpression {
+			if len(m.functionsIndex[commands[i].calleeName].returnVariables) == 0 {
+				// function call without return value
+				continue
+			}
 		}
 		commands[i].Src = commandPrintted(commands[i].Src)
 	}
