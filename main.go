@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 
 	"github.com/peterh/liner"
@@ -103,11 +104,13 @@ func waitForInput(commands chan<- string, continueChan <-chan bool, done chan bo
 	for <-continueChan {
 		if command, err := line.Prompt(">>> "); err == nil {
 			commands <- command
-			line.AppendHistory(command)
 			if command == "exit" {
 				done <- true
 				return
+			} else if command == "" {
+				continue
 			}
+			line.AppendHistory(command)
 		} else if err == liner.ErrPromptAborted {
 			done <- true
 			return
@@ -137,6 +140,16 @@ func setupLiner() (*liner.State, string) {
 	history_path := filepath.Join(homedir, ".goshell_history")
 	line := liner.NewLiner()
 	line.SetCtrlCAborts(true)
+
+	line.SetCompleter(func(line string) (c []string) {
+		for _, n := range autoComplete {
+			if strings.HasPrefix(n, strings.ToLower(line)) {
+				c = append(c, n)
+			}
+		}
+		return
+	})
+
 	if f, err := os.Open(history_path); err == nil {
 		line.ReadHistory(f)
 		f.Close()
