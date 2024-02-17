@@ -57,6 +57,8 @@ type AstVisitor struct {
 	Imports           []string
 	Functions         []string
 	IsExpression      bool
+	callExpression    bool   // this is a call to function or method expression
+	calleeName        string // name of the function or method being called
 }
 
 // Visit inspects the type of a Node to detect a Assignment, Declaration or Import
@@ -79,6 +81,14 @@ func (av *AstVisitor) Visit(node ast.Node) ast.Visitor {
 		av.Imports = append(av.Imports, node.Path.Value)
 	case *ast.ExprStmt:
 		av.IsExpression = true
+		callExpr, ok := node.X.(*ast.CallExpr)
+		if ok {
+			ident, ok := callExpr.Fun.(*ast.Ident)
+			if ok {
+				av.callExpression = true
+				av.calleeName = ident.Name
+			}
+		}
 	}
 	return av
 }

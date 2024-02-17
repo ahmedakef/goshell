@@ -54,11 +54,12 @@ func TestManager_RunProgram(t *testing.T) {
 			expectedError:  nil,
 		},
 		{
-			name: "assignment, experiment, function declaration",
+			name: "function declaration without return variables and call",
 			input: []string{
 				"func x() { fmt.Println(3) }",
+				"x()",
 			},
-			expectedOutput: "",
+			expectedOutput: "3\n",
 			expectedError:  nil,
 		},
 	}
