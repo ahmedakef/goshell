@@ -155,6 +155,7 @@ func setupLiner() (*liner.State, string) {
 	line := liner.NewLiner()
 	line.SetCtrlCAborts(true)
 	line.SetMultiLineMode(true)
+	line.SetTabCompletionStyle(liner.TabCircular)
 
 	line.SetWordCompleter(WordCompleter)
 
