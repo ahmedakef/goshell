@@ -21,7 +21,7 @@ const (
 	.h(elp)		print this help message
 	`
 
-	_programPath = "program.go"
+	_programPath = "goshell_program.go"
 )
 
 func main() {
