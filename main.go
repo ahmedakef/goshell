@@ -103,10 +103,14 @@ func waitForInput(commands chan<- string, continueChan <-chan bool, done chan bo
 				continue
 			} else if strings.HasSuffix(strings.TrimSpace(command), "{") {
 				multiLineCommand := command + "\n"
+				openBrackets := strings.Count(command, "{")
+				openBrackets -= strings.Count(command, "}")
 				for {
 					if subCommand, err := line.Prompt("... "); err == nil {
 						multiLineCommand += subCommand + "\n"
-						if strings.HasSuffix(strings.TrimSpace(subCommand), "}") {
+						openBrackets += strings.Count(subCommand, "{")
+						openBrackets -= strings.Count(subCommand, "}")
+						if openBrackets == 0 {
 							break
 						}
 					} else {
@@ -152,12 +156,30 @@ func setupLiner() (*liner.State, string) {
 	line.SetCtrlCAborts(true)
 	line.SetMultiLineMode(true)
 
-	line.SetCompleter(func(line string) (c []string) {
-		for _, n := range autoComplete {
-			if strings.HasPrefix(n, strings.ToLower(line)) {
-				c = append(c, n)
+	line.SetWordCompleter(func(line string, pos int) (head string, completions []string, tail string) {
+		head = line[:pos]
+		tail = line[pos:]
+
+		if !(contains(supportedPackages, head) || contains(supportedPackages, strings.TrimSuffix(head, "."))) {
+			// this is a not known package
+			for _, n := range autoComplete {
+				if strings.HasPrefix(n, strings.ToLower(line)) {
+					completions = append(completions, n)
+				}
 			}
+			head, tail = "", ""
+			return
 		}
+		packageName := head
+		if strings.HasSuffix(head, ".") {
+			packageName = strings.TrimSuffix(head, ".")
+		} else {
+			head = head + "." // add a dot to the package name
+		}
+
+		allPkgFunctions := packageFunctions[packageName]
+
+		completions = allPkgFunctions
 		return
 	})
 
@@ -166,4 +188,13 @@ func setupLiner() (*liner.State, string) {
 		f.Close()
 	}
 	return line, history_path
+}
+
+func contains(arr []string, str string) bool {
+	for _, a := range arr {
+		if a == str {
+			return true
+		}
+	}
+	return false
 }
