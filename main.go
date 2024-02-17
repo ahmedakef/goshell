@@ -160,26 +160,32 @@ func setupLiner() (*liner.State, string) {
 		head = line[:pos]
 		tail = line[pos:]
 
-		if !(contains(supportedPackages, head) || contains(supportedPackages, strings.TrimSuffix(head, "."))) {
-			// this is a not known package
-			for _, n := range autoComplete {
-				if strings.HasPrefix(n, strings.ToLower(line)) {
-					completions = append(completions, n)
-				}
-			}
-			head, tail = "", ""
+		headSplitted := strings.SplitN(head, ".", 2)
+		packageName := headSplitted[0]
+
+		if !contains(supportedPackages, packageName) {
+			// this is a not known package, we match to the language keywords
+			completions = SimpleAutoCompletion(packageName)
+			head, tail = "", tail
 			return
 		}
-		packageName := head
-		if strings.HasSuffix(head, ".") {
-			packageName = strings.TrimSuffix(head, ".")
-		} else {
-			head = head + "." // add a dot to the package name
+
+		head = packageName + "."
+		function := ""
+		if len(headSplitted) == 2 {
+			function = headSplitted[1]
 		}
 
 		allPkgFunctions := packageFunctions[packageName]
-
-		completions = allPkgFunctions
+		if function == "" {
+			completions = allPkgFunctions
+			return
+		}
+		for _, pkgFunction := range allPkgFunctions {
+			if strings.HasPrefix(pkgFunction, function) {
+				completions = append(completions, pkgFunction)
+			}
+		}
 		return
 	})
 
@@ -188,6 +194,16 @@ func setupLiner() (*liner.State, string) {
 		f.Close()
 	}
 	return line, history_path
+}
+
+func SimpleAutoCompletion(word string) []string {
+	var completions []string
+	for _, possibleWord := range autoComplete {
+		if strings.HasPrefix(possibleWord, strings.ToLower(word)) {
+			completions = append(completions, possibleWord)
+		}
+	}
+	return completions
 }
 
 func contains(arr []string, str string) bool {
