@@ -28,7 +28,7 @@ func TestWordCompleter(t *testing.T) {
 			line:        "",
 			pos:         0,
 			head:        "",
-			completions: autoComplete,
+			completions: []string{},
 			tail:        "",
 		},
 		{
