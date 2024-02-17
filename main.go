@@ -156,61 +156,11 @@ func setupLiner() (*liner.State, string) {
 	line.SetCtrlCAborts(true)
 	line.SetMultiLineMode(true)
 
-	line.SetWordCompleter(func(line string, pos int) (head string, completions []string, tail string) {
-		head = line[:pos]
-		tail = line[pos:]
-
-		headSplitted := strings.SplitN(head, ".", 2)
-		packageName := headSplitted[0]
-
-		if !contains(supportedPackages, packageName) {
-			// this is a not known package, we match to the language keywords
-			completions = SimpleAutoCompletion(packageName)
-			head, tail = "", tail
-			return
-		}
-
-		head = packageName + "."
-		function := ""
-		if len(headSplitted) == 2 {
-			function = headSplitted[1]
-		}
-
-		allPkgFunctions := packageFunctions[packageName]
-		if function == "" {
-			completions = allPkgFunctions
-			return
-		}
-		for _, pkgFunction := range allPkgFunctions {
-			if strings.HasPrefix(pkgFunction, function) {
-				completions = append(completions, pkgFunction)
-			}
-		}
-		return
-	})
+	line.SetWordCompleter(WordCompleter)
 
 	if f, err := os.Open(history_path); err == nil {
 		line.ReadHistory(f)
 		f.Close()
 	}
 	return line, history_path
-}
-
-func SimpleAutoCompletion(word string) []string {
-	var completions []string
-	for _, possibleWord := range autoComplete {
-		if strings.HasPrefix(possibleWord, strings.ToLower(word)) {
-			completions = append(completions, possibleWord)
-		}
-	}
-	return completions
-}
-
-func contains(arr []string, str string) bool {
-	for _, a := range arr {
-		if a == str {
-			return true
-		}
-	}
-	return false
 }
