@@ -18,8 +18,11 @@ func ParseFunction(x string) (function, error) {
 	}
 	funcDecl := file.Decls[0].(*ast.FuncDecl)
 	function.Name = funcDecl.Name.Name
-	returnVariables := funcDecl.Type.Results.List
-	for _, variable := range returnVariables {
+	returnVariables := funcDecl.Type.Results
+	if returnVariables == nil {
+		return function, nil
+	}
+	for _, variable := range returnVariables.List {
 		ident, ok := variable.Type.(*ast.Ident)
 		if ok {
 			function.returnVariables = append(function.returnVariables, ident.Name)

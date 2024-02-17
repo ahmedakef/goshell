@@ -53,6 +53,14 @@ func TestManager_RunProgram(t *testing.T) {
 			expectedOutput: "",
 			expectedError:  nil,
 		},
+		{
+			name: "assignment, experiment, function declaration",
+			input: []string{
+				"func x() { fmt.Println(3) }",
+			},
+			expectedOutput: "",
+			expectedError:  nil,
+		},
 	}
 
 	for _, tt := range tests {

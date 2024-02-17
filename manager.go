@@ -133,10 +133,12 @@ func (m *Manager) prepareCommands() []command {
 			continue
 		}
 		if i < len(commands)-1 || m.lastInputFunctionDef {
+			// remove all expression commands and function definitions before the last one
 			commands[i].Hidden = true
 			continue
 		}
 		if strings.HasPrefix(commands[i].Src, "fmt.Print") {
+			// expression already contain printing
 			continue
 		}
 		commands[i].Src = commandPrintted(commands[i].Src)
