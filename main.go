@@ -60,8 +60,6 @@ func main() {
 				return
 			case ".vars", ".v":
 				fmt.Println(manager.extractVariables())
-				continueChan <- true
-				continue
 			case ".source", ".s":
 				program, err := manager.getProgram()
 				if err != nil {
@@ -69,16 +67,11 @@ func main() {
 				} else {
 					fmt.Println(program)
 				}
-				continueChan <- true
-				continue
 			case ".undo", ".u":
 				manager.removeLastInput()
-				continueChan <- true
-				continue
 			case ".help", ".h":
 				fmt.Println(helpMessage)
-				continueChan <- true
-				continue
+
 			default:
 				err := manager.addInput(command)
 				if err != nil {
@@ -94,9 +87,9 @@ func main() {
 				if output != "" {
 					fmt.Print(output)
 				}
-				continueChan <- true
 			}
 		}
+		continueChan <- true
 	}
 }
 
