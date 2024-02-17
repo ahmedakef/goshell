@@ -63,7 +63,7 @@ func main() {
 			case ".source", ".s":
 				program, err := manager.getProgram()
 				if err != nil {
-					fmt.Println("Error:", err)
+					fmt.Println("Error geting the source code:", err)
 				} else {
 					fmt.Println(program)
 				}
@@ -75,7 +75,7 @@ func main() {
 			default:
 				err := manager.addInput(command)
 				if err != nil {
-					fmt.Println("Error:", err)
+					fmt.Println("Error parsing the input:", err)
 					continueChan <- true
 					continue
 				}
@@ -118,8 +118,7 @@ func waitForSignal(done chan bool) {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	sig := <-sigs
-	fmt.Println()
-	fmt.Println("received:", sig)
+	fmt.Println("\nreceived:", sig)
 	done <- true
 
 }
@@ -133,6 +132,7 @@ func setupLiner() (*liner.State, string) {
 	history_path := filepath.Join(homedir, ".goshell_history")
 	line := liner.NewLiner()
 	line.SetCtrlCAborts(true)
+	line.SetMultiLineMode(true)
 
 	line.SetCompleter(func(line string) (c []string) {
 		for _, n := range autoComplete {
