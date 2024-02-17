@@ -11,8 +11,10 @@ func WordCompleter(line string, pos int) (head string, completions []string, tai
 
 	if !contains(supportedPackages, packageName) {
 		// this is a not known package, we match to the language keywords
-		completions = SimpleAutoCompletion(packageName)
-		head = ""
+		completions = getPossipleSuggestions(autoComplete, packageName)
+		if len(completions) > 0 {
+			head = ""
+		}
 		return
 	}
 
@@ -27,18 +29,15 @@ func WordCompleter(line string, pos int) (head string, completions []string, tai
 		completions = allPkgFunctions
 		return
 	}
-	for _, pkgFunction := range allPkgFunctions {
-		if strings.HasPrefix(pkgFunction, function) {
-			completions = append(completions, pkgFunction)
-		}
-	}
+
+	completions = getPossipleSuggestions(allPkgFunctions, function)
 	return
 }
 
-func SimpleAutoCompletion(word string) []string {
+func getPossipleSuggestions(possibleWords []string, word string) []string {
 	var completions []string
-	for _, possibleWord := range autoComplete {
-		if strings.HasPrefix(possibleWord, strings.ToLower(word)) {
+	for _, possibleWord := range possibleWords {
+		if strings.HasPrefix(strings.ToLower(possibleWord), strings.ToLower(word)) {
 			completions = append(completions, possibleWord)
 		}
 	}
@@ -57,7 +56,7 @@ func contains(arr []string, str string) bool {
 var (
 	supportedPackages = []string{"fmt", "os", "os/signal", "path/filepath", "strings", "syscall"}
 	packageFunctions  = map[string][]string{
-		"fmt":           {"Println", "Printf", "Print", "Sprint", "Sprintf", "Sprintln", "Errorf", "Fprint", "Fprintf", "Fprintln", "Println", "Scan", "Scanf", "Scanln", "Sscan", "Sscanf", "Sscanln", "Fscan", "Fscanf", "Fscanln", "Error", "New", "Errorf", "Fprintf", "Fprintln", "Fscan", "Fscanf", "Fscanln", "Print", "Printf", "Println", "Sprint", "Sprintf", "Sprintln", "Scan", "Scanf", "Scanln", "Sscan", "Sscanf", "Sscanln"},
+		"fmt":           {"Println", "Printf", "Print", "Sprint", "Sprintf", "Sprintln", "Errorf", "Fprint", "Fprintf", "Fprintln", "Scan", "Scanf", "Scanln", "Sscan", "Sscanf", "Sscanln", "Fscan", "Fscanf", "Fscanln", "Error", "New", "Errorf", "Fprintf", "Fprintln", "Fscan", "Fscanf", "Fscanln"},
 		"os":            {"Create", "NewFile", "Open", "OpenFile", "Remove", "RemoveAll", "Rename", "Stat", "Lstat", "Chmod", "Chown", "Chtimes", "Mkdir", "MkdirAll", "Readlink", "Symlink", "Link", "Truncate", "ReadFile", "WriteFile", "TempDir", "TempFile", "Getwd", "Chdir", "Chroot", "Mkdir", "MkdirAll", "Remove", "RemoveAll", "Rename", "Stat", "Lstat", "Chmod", "Chown", "Chtimes", "Readlink", "Symlink", "Link", "Truncate", "ReadFile", "WriteFile", "TempDir", "TempFile", "Getwd", "Chdir", "Chroot"},
 		"os/signal":     {"Notify", "Stop"},
 		"path/filepath": {"Base", "Clean", "Dir", "EvalSymlinks", "Ext", "FromSlash", "Glob", "IsAbs", "Join", "Match", "Rel", "Split", "ToSlash", "VolumeName", "Walk", "WalkDir", "Base", "Clean", "Dir", "EvalSymlinks", "Ext", "FromSlash", "Glob", "IsAbs", "Join", "Match", "Rel", "Split", "ToSlash", "VolumeName", "Walk", "WalkDir"},
