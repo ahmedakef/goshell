@@ -96,18 +96,36 @@ func main() {
 func waitForInput(commands chan<- string, continueChan <-chan bool, done chan bool, line *liner.State) {
 	for <-continueChan {
 		if command, err := line.Prompt(">>> "); err == nil {
-			commands <- command
 			if command == "exit" {
 				done <- true
 				return
 			} else if command == "" {
 				continue
+			} else if strings.HasSuffix(strings.TrimSpace(command), "{") {
+				multiLineCommand := command + "\n"
+				for {
+					if subCommand, err := line.Prompt("... "); err == nil {
+						multiLineCommand += subCommand + "\n"
+						if strings.HasSuffix(strings.TrimSpace(subCommand), "}") {
+							break
+						}
+					} else {
+						fmt.Println("Error reading input: ", err)
+						done <- true
+						return
+					}
+				}
+				commands <- multiLineCommand
+				line.AppendHistory(multiLineCommand)
+			} else {
+				commands <- command
+				line.AppendHistory(command)
 			}
-			line.AppendHistory(command)
 		} else if err == liner.ErrPromptAborted {
 			done <- true
 			return
 		} else {
+			fmt.Println("Error reading input: ", err)
 			done <- true
 		}
 	}
