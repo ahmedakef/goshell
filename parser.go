@@ -89,6 +89,7 @@ func (av *AstVisitor) Visit(node ast.Node) ast.Visitor {
 				av.calleeName = ident.Name
 			}
 		}
+	case *ast.IncDecStmt: // like a++ or a--
 	}
 	return av
 }
