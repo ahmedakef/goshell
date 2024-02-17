@@ -73,6 +73,9 @@ func main() {
 				fmt.Println(helpMessage)
 
 			default:
+				if command == "" {
+					break // ignore empty commands
+				}
 				err := manager.addInput(command)
 				if err != nil {
 					fmt.Println("Error parsing the input:", err)
@@ -99,14 +102,15 @@ func waitForInput(commands chan<- string, continueChan <-chan bool, done chan bo
 			if command == "exit" {
 				done <- true
 				return
-			} else if command == "" {
-				continue
 			} else if strings.HasSuffix(strings.TrimSpace(command), "{") {
 				multiLineCommand := command + "\n"
 				openBrackets := strings.Count(command, "{")
 				openBrackets -= strings.Count(command, "}")
 				for {
 					if subCommand, err := line.Prompt("... "); err == nil {
+						if subCommand == "" {
+							continue
+						}
 						multiLineCommand += subCommand + "\n"
 						openBrackets += strings.Count(subCommand, "{")
 						openBrackets -= strings.Count(subCommand, "}")
@@ -123,7 +127,9 @@ func waitForInput(commands chan<- string, continueChan <-chan bool, done chan bo
 				line.AppendHistory(multiLineCommand)
 			} else {
 				commands <- command
-				line.AppendHistory(command)
+				if command != "" {
+					line.AppendHistory(command)
+				}
 			}
 		} else if err == liner.ErrPromptAborted {
 			done <- true
