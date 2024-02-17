@@ -1,11 +1,13 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
+
+	"github.com/peterh/liner"
 )
 
 const (
@@ -27,18 +29,28 @@ func main() {
 	go waitForSignal(done)
 	commandsChan := make(chan string, 1)
 	continueChan := make(chan bool, 1)
+
+	line, history_path := setupLiner()
+	defer line.Close()
+
+	fmt.Println(startUpMessage)
+	fmt.Println(helpMessage)
 	continueChan <- true
-	go waitForInput(commandsChan, continueChan, done)
+	go waitForInput(commandsChan, continueChan, done, line)
 
 	manager := newManager(_programPath)
 	manager.cleanUp()
 
-	fmt.Println(startUpMessage)
-	fmt.Println(helpMessage)
 	for {
 		select {
 		case <-done:
 			manager.cleanUp()
+			if f, err := os.Create(history_path); err != nil {
+				fmt.Println("Error writing history file: ", err)
+			} else {
+				line.WriteHistory(f)
+				f.Close()
+			}
 			return
 		case command := <-commandsChan:
 			switch command {
@@ -87,26 +99,21 @@ func main() {
 	}
 }
 
-func waitForInput(commands chan<- string, continueChan <-chan bool, done chan bool) {
-	scanner := bufio.NewScanner(os.Stdin)
+func waitForInput(commands chan<- string, continueChan <-chan bool, done chan bool, line *liner.State) {
 	for <-continueChan {
-		fmt.Print(">>> ")
-		scanned := scanner.Scan()
-		if !scanned {
-			if scanner.Err() != nil {
-				fmt.Println("Error:", scanner.Err())
+		if command, err := line.Prompt(">>> "); err == nil {
+			commands <- command
+			line.AppendHistory(command)
+			if command == "exit" {
+				done <- true
+				return
 			}
+		} else if err == liner.ErrPromptAborted {
 			done <- true
 			return
-		}
-		command := scanner.Text()
-
-		if command == "exit" {
+		} else {
 			done <- true
-			return
 		}
-		commands <- command
-
 	}
 }
 
@@ -119,4 +126,20 @@ func waitForSignal(done chan bool) {
 	fmt.Println("received:", sig)
 	done <- true
 
+}
+
+func setupLiner() (*liner.State, string) {
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println("Error getting home directory:", err)
+		homedir = os.TempDir()
+	}
+	history_path := filepath.Join(homedir, ".goshell_history")
+	line := liner.NewLiner()
+	line.SetCtrlCAborts(true)
+	if f, err := os.Open(history_path); err == nil {
+		line.ReadHistory(f)
+		f.Close()
+	}
+	return line, history_path
 }
