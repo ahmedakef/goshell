@@ -5,6 +5,9 @@ import "strings"
 func WordCompleter(line string, pos int) (head string, completions []string, tail string) {
 	head = line[:pos]
 	tail = line[pos:]
+	if head == "" {
+		return
+	}
 
 	headSplitted := strings.SplitN(head, ".", 2)
 	packageName := headSplitted[0]
