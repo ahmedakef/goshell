@@ -4,11 +4,11 @@ Goshell is REPL shell for golang.
 
 ## Table of Contents
 
-1. [Installation](#installation)
-2. [Usage](#usage)
-3. [Contributing](#contributing)
-4. [Tests](#tests)
-5. [License](#license)
+- [Installation](#installation)
+- [Features](#features)
+- [Examples](#examples)
+- [Requirements](#requirements)
+- [Contact](#contact)
 
 ## Installation
 
@@ -17,20 +17,14 @@ go install github.com/ahmedakef/goshell@latest
 ```
 ## Features
 
-- auto import the needed libraries using `goimports` just write `fmt.Print` and `fmt will be imported.
+- auto import the needed libraries using `goimports` just write `fmt.Print()` and `fmt` will be imported.
 - autocompletion for languages keywords and libraries's functions.
 - print the variablles by writing them, no need to use `fmt.Print()`
-
-## Contributing
-
-If you want to accept contributions to your project, provide instructions on how to do so.
 
 ## Examples
 
 ## live  demo
-<video autoplay loop>
-    <source src="example.mov" type="video/mp4" alt="Example Video">
-</video>
+![Example Demo](docs/example.gif?raw=true "Example demo")
 
 ### Simple variable printing
 
@@ -136,6 +130,8 @@ func use(vals ...interface{}) {
 </tr>
 <tr><td>6 lines</td><td>21 lines</td></tr></tbody></table>
 
+## Requirements
+`goimports` should be installed in the system.
 
 ## Contact
 
