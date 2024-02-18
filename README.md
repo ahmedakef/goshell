@@ -28,7 +28,7 @@ If you want to accept contributions to your project, provide instructions on how
 ## Examples
 
 ## live  demo
-TODO
+![Example Video](example.mp4)
 
 ### Simple variable printing
 
