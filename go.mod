@@ -1,4 +1,4 @@
-module github.com/ahmedakef/goshell
+module github.com/MahmoudYounes/goshell
 
 go 1.21
 
