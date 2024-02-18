@@ -2,6 +2,8 @@
 
 Goshell is REPL shell for golang.
 
+the project is inspired by [rango](https://github.com/emicklei/rango/) but took different decisions.
+
 ## Table of Contents
 
 - [Installation](#installation)
