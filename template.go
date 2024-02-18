@@ -1,6 +1,6 @@
 package main
 
-var programTemplate =`
+var programTemplate = `
 package main
 {{range .functions}}
     {{.Src}}
@@ -14,7 +14,7 @@ func main() {
 }
 
 // used to avoid "declared and not used" error
-func use(vals ...interface{}) {
+func use(vals ...any) {
     for _, val := range vals {
         _ = val
     }
