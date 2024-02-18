@@ -13,7 +13,7 @@ Goshell is REPL shell for golang.
 ## Installation
 
 ```sh
-$ go install github.com/ahmedakef/goshell@latest
+go install github.com/ahmedakef/goshell@latest
 ```
 ## Features
 
@@ -45,9 +45,10 @@ TODO
 <td>
 
 ```go
-a:=1
-b:=2
-a
+>>> a:=1
+>>> b:=2
+>>> a
+1
 ```
 
 </td>
@@ -93,12 +94,13 @@ func use(vals ...interface{}) {
 <td>
 
 ```go
-func add(x,y int) int {
-    return x+y
-}
-a:=1
-b:=2
-add(a,b)
+>>> func add(x,y int) int {
+...     return x+y
+... }
+>>> a:=1
+>>> b:=2
+>>> add(a,b)
+3
 ```
 
 </td>
