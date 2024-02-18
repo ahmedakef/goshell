@@ -1,4 +1,7 @@
 package main
+
+var programTemplate =`
+package main
 {{range .functions}}
     {{.Src}}
 {{end}}
@@ -15,4 +18,4 @@ func use(vals ...interface{}) {
     for _, val := range vals {
         _ = val
     }
-}
+}`
