@@ -28,7 +28,9 @@ If you want to accept contributions to your project, provide instructions on how
 ## Examples
 
 ## live  demo
-![Example Video](example.mov)
+<video autoplay loop>
+    <source src="example.mov" type="video/mp4" alt="Example Video">
+</video>
 
 ### Simple variable printing
 
