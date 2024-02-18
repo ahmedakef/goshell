@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -117,6 +118,9 @@ func waitForInput(commands chan<- string, continueChan <-chan bool, done chan bo
 						if openBrackets == 0 {
 							break
 						}
+					} else if err == io.EOF {
+						done <- true
+						return
 					} else {
 						fmt.Println("Error reading input: ", err)
 						done <- true
@@ -132,6 +136,9 @@ func waitForInput(commands chan<- string, continueChan <-chan bool, done chan bo
 				}
 			}
 		} else if err == liner.ErrPromptAborted {
+			done <- true
+			return
+		} else if err == io.EOF {
 			done <- true
 			return
 		} else {
