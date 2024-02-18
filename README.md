@@ -66,7 +66,7 @@ func main() {
 }
 
 // used to avoid "declared and not used" error
-func use(vals ...interface{}) {
+func use(vals ...any) {
 	for _, val := range vals {
 		_ = val
 	}
@@ -122,7 +122,7 @@ func main() {
 }
 
 // used to avoid "declared and not used" error
-func use(vals ...interface{}) {
+func use(vals ...any) {
 	for _, val := range vals {
 		_ = val
 	}
