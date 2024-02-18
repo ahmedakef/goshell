@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -13,6 +14,7 @@ import (
 )
 
 const (
+	version        = "0.0.1"
 	startUpMessage = "Go Shell - A Repl for Go"
 	helpMessage    = `Commands:
 	.q(uit)		exit Go Shell
@@ -26,6 +28,12 @@ const (
 )
 
 func main() {
+	versionFlag := flag.Bool("v", false, "Print the version")
+	flag.Parse()
+	if *versionFlag {
+		fmt.Println(version)
+		return
+	}
 
 	done := make(chan bool, 1)
 	go waitForSignal(done)
