@@ -22,6 +22,7 @@ go install github.com/ahmedakef/goshell@latest
 - auto import the needed libraries using `goimports` just write `fmt.Print()` and `fmt` will be imported.
 - autocompletion for languages keywords and libraries's functions.
 - print the variablles by writing them, no need to use `fmt.Print()`
+- supports all shell line editing commands supported by [liner](https://github.com/peterh/liner?tab=readme-ov-file#line-editing)
 
 ## Examples
 
