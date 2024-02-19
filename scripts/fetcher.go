@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/gocolly/colly"
@@ -16,42 +15,21 @@ import (
 const (
 	version                = "0.0.1"
 	listURI                = "https://pkg.go.dev/std/"
-	detailURIBase          = "https://pkg.go.dev/"
-	packagesFunctionsFiles = "pkgFunctions.go"
+	packagesFunctionsFiles = "pkgFunctions.json"
 	packagesNamesFiles     = "pkgNames.json"
+	listPageSelector       = "article.go-Main-article table tbody tr td:first-child div div:first-child a"
 )
+
+var mapOfLibs = map[string][]string{}
 
 func main() {
 	listPageCollector := colly.NewCollector()
 	listPageCollector.SetRequestTimeout(120 * time.Second)
-	mapOfLibs := map[string][]string{}
 
 	listPageCollector.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visiting", r.URL)
 	})
-	listPageCollector.OnHTML("article.go-Main-article table tbody tr td:first-child div div:first-child a", func(el *colly.HTMLElement) {
-		packagename := el.Text
-		functionsNames := []string{}
-		libURI := detailURIBase + el.Attr("href")
-		detailsPageCollector := colly.NewCollector()
-		detailsPageCollector.SetRequestTimeout(120 * time.Second)
-		detailsPageCollector.OnRequest(func(r *colly.Request) {
-			fmt.Println("Visiting", r.URL)
-		})
-		detailsPageCollector.OnHTML("li.DocNav-functions ul li a", func(e *colly.HTMLElement) {
-			functionText := strings.TrimSpace(e.Text)
-			function := strings.Split(functionText, "(")[0]
-			functionsNames = append(functionsNames, function)
-
-		})
-
-		err := detailsPageCollector.Visit(libURI)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		mapOfLibs[packagename] = functionsNames
-	})
+	listPageCollector.OnHTML(listPageSelector, detailsPagerVisiter)
 	err := listPageCollector.Visit(listURI)
 	if err != nil {
 		fmt.Println(err)
