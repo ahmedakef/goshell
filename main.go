@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	version        = "0.0.4"
+	version        = "0.0.5"
 	startUpMessage = "Go Shell - A Repl for Go"
 	helpMessage    = `Commands:
 	.q(uit)		exit Go Shell
@@ -24,11 +24,12 @@ const (
 	.h(elp)		print this help message
 	`
 
-	_programPath = "goshell_program.go"
+	_programName = "goshell_program.go"
 )
 
 func main() {
 	versionFlag := flag.Bool("v", false, "Print the version")
+	debugFlag := flag.Bool("debug", false, "debug mode")
 	flag.Parse()
 	if *versionFlag {
 		fmt.Println(version)
@@ -48,7 +49,11 @@ func main() {
 	continueChan <- true
 	go waitForInput(commandsChan, continueChan, done, line)
 
-	manager := newManager(_programPath)
+	path := filepath.Join(os.TempDir(), _programName)
+	if *debugFlag {
+		fmt.Println("Debug mode, using the file:", path)
+	}
+	manager := newManager(path)
 	manager.cleanUp()
 
 	for {
