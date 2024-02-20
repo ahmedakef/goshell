@@ -55,6 +55,22 @@ func TestWordCompleter(t *testing.T) {
 			completions: []string{"Print", "Printf", "Println"},
 			tail:        "",
 		},
+		{
+			name:        "Package known, unkown function specified",
+			line:        "fmt.Zz",
+			pos:         6,
+			head:        "fmt.Zz",
+			completions: []string{},
+			tail:        "",
+		},
+		{
+			name:        "complete even in the middle of the line",
+			line:        "a:= struc random",
+			pos:         9,
+			head:        "a:= ",
+			completions: []string{"struct"},
+			tail:        " random",
+		},
 	}
 
 	for _, tt := range tests {
