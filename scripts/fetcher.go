@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -17,19 +18,32 @@ const (
 	listURI                = "https://pkg.go.dev/std/"
 	packagesFunctionsFiles = "pkgFunctions.json"
 	packagesNamesFiles     = "pkgNames.json"
-	listPageSelector       = "article.go-Main-article table tbody tr td:first-child div div:first-child a"
+	listPageSelector       = "article.go-Main-article table tbody tr"
 )
 
-var mapOfLibs = map[string][]string{}
+var (
+	mapOfLibs = map[string][]string{}
+	debugFlag = flag.Bool("debug", false, "debug mode")
+)
 
 func main() {
+	flag.Parse()
 	listPageCollector := colly.NewCollector()
 	listPageCollector.SetRequestTimeout(120 * time.Second)
 
 	listPageCollector.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visiting", r.URL)
 	})
-	listPageCollector.OnHTML(listPageSelector, detailsPagerVisiter)
+	listPageCollector.OnHTML(listPageSelector, listPageHandler)
+	listPageCollector.OnResponse(func(r *colly.Response) {
+		if !*debugFlag {
+			return
+		}
+		err := os.WriteFile("listResponse.html", r.Body, 0644)
+		if err != nil {
+			fmt.Println(err)
+		}
+	})
 	err := listPageCollector.Visit(listURI)
 	if err != nil {
 		fmt.Println(err)
