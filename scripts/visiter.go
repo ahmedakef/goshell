@@ -13,7 +13,7 @@ import (
 
 const (
 	detailURIBase       = "https://pkg.go.dev/"
-	detailsPageSelector = "li.DocNav-functions ul li a"
+	detailsPageSelector = "li.DocNav-functions,li.DocNav-types"
 )
 
 func listPageHandler(el *colly.HTMLElement) {
@@ -42,16 +42,46 @@ func listPageHandler(el *colly.HTMLElement) {
 }
 
 func visitPackage(libURI string) []string {
-	functionsNames := []string{}
+	membersNames := []string{}
+	// for some reason the "li.DocNav-types > ul > li > ul > li > a" selector return an item twice
+	membrersLookup := map[string]struct{}{}
 	detailsPageCollector := colly.NewCollector()
 	detailsPageCollector.SetRequestTimeout(120 * time.Second)
 	detailsPageCollector.OnRequest(func(r *colly.Request) {
 		log.Println("Visiting", r.URL)
 	})
-	detailsPageCollector.OnHTML(detailsPageSelector, func(e *colly.HTMLElement) {
-		functionText := strings.TrimSpace(e.Text)
-		function := strings.Split(functionText, "(")[0]
-		functionsNames = append(functionsNames, function)
+	detailsPageCollector.OnHTML(detailsPageSelector, func(category *colly.HTMLElement) {
+		category.ForEach("ul > li", func(i int, e *colly.HTMLElement) {
+			if category.Attr("class") == "DocNav-functions" {
+				functionText := strings.TrimSpace(e.ChildText("a:first-child"))
+				function := clearFunctionName(functionText)
+				membersNames = append(membersNames, function)
+			} else if category.Attr("class") == "DocNav-types" {
+				e.ForEach("li.DocNav-types > ul > li > a", func(i int, el *colly.HTMLElement) {
+					text := strings.TrimSpace(el.Text)
+					if strings.Contains(text, "type") {
+						typeCleared := strings.Split(text, "type ")[1]
+						if _, ok := membrersLookup[typeCleared]; !ok {
+							membersNames = append(membersNames, typeCleared)
+							membrersLookup[typeCleared] = struct{}{}
+						}
+					}
+				})
+				e.ForEach("li.DocNav-types > ul > li > ul > li > a", func(i int, el *colly.HTMLElement) {
+					text := strings.TrimSpace(el.Text)
+					if strings.HasPrefix(text, "(") {
+						// type methods, skipped for now as it is complex to support them
+						return
+					}
+					function := clearFunctionName(text)
+					if _, ok := membrersLookup[function]; !ok {
+						membersNames = append(membersNames, function)
+						membrersLookup[function] = struct{}{}
+					}
+
+				})
+			}
+		})
 	})
 
 	detailsPageCollector.OnResponse(func(r *colly.Response) {
@@ -69,5 +99,9 @@ func visitPackage(libURI string) []string {
 		log.Println(err)
 	}
 
-	return functionsNames
+	return membersNames
+}
+
+func clearFunctionName(function string) string {
+	return strings.Split(function, "(")[0]
 }
