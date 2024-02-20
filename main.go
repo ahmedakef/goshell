@@ -116,7 +116,8 @@ func waitForInput(commands chan<- string, continueChan <-chan bool, done chan bo
 				openBrackets := strings.Count(command, "{")
 				openBrackets -= strings.Count(command, "}")
 				for {
-					if subCommand, err := line.Prompt("... "); err == nil {
+					identation := strings.Repeat("    ", openBrackets)
+					if subCommand, err := line.Prompt("... " + identation); err == nil {
 						if subCommand == "" {
 							continue
 						}
