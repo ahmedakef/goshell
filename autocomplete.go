@@ -13,31 +13,38 @@ func WordCompleter(line string, pos int) (head string, completions []string, tai
 		return
 	}
 
-	headSplitted := strings.SplitN(head, ".", 2)
+	lastToken, lastTokenPos := getLastToken(head)
+	head = head[:lastTokenPos]
+
+	headSplitted := strings.SplitN(lastToken, ".", 2)
 	packageName := headSplitted[0]
 
 	if !contains(supportedPackages, packageName) {
 		// this is a not known package, we match to the language keywords
 		completions = getPossipleSuggestions(autoComplete, packageName)
-		if len(completions) > 0 {
-			head = ""
+		if len(completions) == 0 {
+			head += lastToken
 		}
 		return
 	}
 
-	head = packageName + "."
+	packagePart := packageName + "."
+	head = head + packagePart
 	function := ""
-	if len(headSplitted) == 2 {
-		function = headSplitted[1]
-	}
 
 	allPkgFunctions := packageFunctions[packageName]
-	if function == "" {
-		completions = allPkgFunctions
-		return
+	if len(headSplitted) == 2 {
+		function = headSplitted[1]
+		if function == "" {
+			completions = allPkgFunctions
+			return
+		}
 	}
 
 	completions = getPossipleSuggestions(allPkgFunctions, function)
+	if len(completions) == 0 {
+		head = lastToken
+	}
 	return
 }
 
@@ -51,6 +58,13 @@ func getPossipleSuggestions(possibleWords []string, word string) []string {
 	return completions
 }
 
+func getLastToken(head string) (token string, pos int) {
+	headSplitted := strings.Split(head, " ")
+	token = headSplitted[len(headSplitted)-1]
+	pos = len(head) - len(token)
+	return
+}
+
 func contains(arr []string, str string) bool {
 	for _, a := range arr {
 		if a == str {
@@ -62,20 +76,7 @@ func contains(arr []string, str string) bool {
 
 var (
 
-	// packageFunctions is a map of package name to a list of functions
-	// generated automatically by going to the package page like: https://pkg.go.dev/sync
-	// and running the following code in the console:
-	// let ulElement = document.getElementById("Documentation_nav_group_Functions");
-	// let liElements = ulElement.querySelectorAll("li");
-	// let list = [];
-
-	// for(let li of liElements) {
-	// 	let aElement = li.querySelector("a");
-	// 	if(aElement) {
-	// 		list.push(aElement.textContent.trim().split("(")[0]);
-	// 	}
-	// }
-	// console.log(`{"${list.join('", "')}"}`);
+	// populated using scipts/fetcher.go
 
 	packageFunctions = map[string][]string{"archive/tar": {"Format", "Header", "FileInfoHeader", "Reader", "NewReader", "Writer", "NewWriter"},
 		"archive/zip":                        {"RegisterCompressor", "RegisterDecompressor", "Compressor", "Decompressor", "File", "FileHeader", "FileInfoHeader", "ReadCloser", "OpenReader", "Reader", "NewReader", "Writer", "NewWriter"},
