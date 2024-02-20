@@ -3,4 +3,6 @@ program.go
 .vscode
 scripts/pkgNames.json
 scripts/pkgFunctions.json
-scripts/output.HTML
+scripts/listResponse.html
+scripts/detailsResponse.html
+.DS_Store
