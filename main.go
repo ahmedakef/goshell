@@ -111,10 +111,11 @@ func waitForInput(commands chan<- string, continueChan <-chan bool, done chan bo
 			if command == "exit" {
 				done <- true
 				return
-			} else if strings.HasSuffix(strings.TrimSpace(command), "{") {
+			} else if strings.Contains(command, "{") {
 				multiLineCommand := command + "\n"
 				openBrackets := strings.Count(command, "{")
 				openBrackets -= strings.Count(command, "}")
+				userExit := false
 				for {
 					identation := strings.Repeat("    ", openBrackets)
 					if subCommand, err := line.Prompt("... " + identation); err == nil {
@@ -127,27 +128,28 @@ func waitForInput(commands chan<- string, continueChan <-chan bool, done chan bo
 						if openBrackets == 0 {
 							break
 						}
-					} else if err == io.EOF {
-						done <- true
-						return
+					} else if err == io.EOF || err == liner.ErrPromptAborted {
+						userExit = true
+						break
 					} else {
 						fmt.Println("Error reading input: ", err)
 						done <- true
 						return
 					}
 				}
-				commands <- multiLineCommand
-				line.AppendHistory(multiLineCommand)
+				if userExit {
+					commands <- ""
+				} else {
+					commands <- multiLineCommand
+					line.AppendHistory(multiLineCommand)
+				}
 			} else {
 				commands <- command
 				if command != "" {
 					line.AppendHistory(command)
 				}
 			}
-		} else if err == liner.ErrPromptAborted {
-			done <- true
-			return
-		} else if err == io.EOF {
+		} else if err == liner.ErrPromptAborted || err == io.EOF {
 			done <- true
 			return
 		} else {
