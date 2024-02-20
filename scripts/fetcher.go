@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gocolly/colly"
-	"golang.org/x/exp/maps"
 )
 
 const (
@@ -59,17 +58,6 @@ func main() {
 		{"sed", "-i", "", "s/\\[/{/g", packagesFunctionsFiles},
 		{"sed", "-i", "", "s/\\]/}/g", packagesFunctionsFiles},
 		{"sed", "-i", "", "s/},/},\\n/g", packagesFunctionsFiles},
-	}
-	executeCommands(commands)
-
-	packgesNames := maps.Keys(mapOfLibs)
-	jsonData, err = json.Marshal(packgesNames)
-	if err != nil {
-		fmt.Println(err)
-	}
-	os.WriteFile(packagesNamesFiles, jsonData, 0644)
-	commands = [][]string{
-		{"sed", "-i", "", "s/\",\"/\",\\n\"/g", packagesNamesFiles},
 	}
 	executeCommands(commands)
 

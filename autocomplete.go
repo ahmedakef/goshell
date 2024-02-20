@@ -1,6 +1,10 @@
 package main
 
-import "strings"
+import (
+	"strings"
+
+	"golang.org/x/exp/maps"
+)
 
 func WordCompleter(line string, pos int) (head string, completions []string, tail string) {
 	head = line[:pos]
@@ -57,7 +61,6 @@ func contains(arr []string, str string) bool {
 }
 
 var (
-	supportedPackages = []string{"fmt", "os", "os/signal", "path/filepath", "strings", "syscall"}
 
 	// packageFunctions is a map of package name to a list of functions
 	// generated automatically by going to the package page like: https://pkg.go.dev/sync
@@ -351,46 +354,9 @@ var (
 		"unsafe":                                   {"Alignof", "Offsetof", "Sizeof", "String", "StringData"},
 	}
 
-	autoComplete = []string{
-		// packages
-		"strconv",
-		"bytes",
-		"log",
-		"net",
-		"testing",
-		"expvar",
-		"mime",
-		"os",
-		"unicode",
-		"cmp",
-		"runtime",
-		"strings",
-		"embed",
-		"plugin",
-		"flag",
-		"io",
-		"regexp",
-		"bufio",
-		"crypto",
-		"encoding",
-		"image",
-		"path",
-		"slices",
-		"sync",
-		"time",
-		"builtin",
-		"errors",
-		"fmt",
-		"unsafe",
-		"reflect",
-		"sort",
-		"context",
-		"html",
-		"math",
-		"hash",
-		"maps",
-		"syscall",
+	supportedPackages = maps.Keys(packageFunctions)
 
+	autoComplete = append(supportedPackages,
 		// language keywords
 		"package",
 		"import",
@@ -450,5 +416,5 @@ var (
 		".source",
 		".undo",
 		".help",
-	}
+	)
 )
