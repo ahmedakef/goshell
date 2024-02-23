@@ -9,7 +9,6 @@ the project is inspired by [rango](https://github.com/emicklei/rango/) but took 
 - [Installation](#installation)
 - [Features](#features)
 - [Examples](#examples)
-- [Requirements](#requirements)
 - [Contact](#contact)
 
 ## Installation
@@ -23,6 +22,7 @@ go install github.com/ahmedakef/goshell@latest
 - autocompletion for languages keywords and libraries's functions and types without the need for language server.
 - print the variablles by writing them, no need to use `fmt.Print()`
 - supports all shell line editing commands supported by [liner](https://github.com/peterh/liner?tab=readme-ov-file#line-editing)
+- don't have dependancy on goimports
 
 ## Examples
 
@@ -132,9 +132,6 @@ func use(vals ...any) {
 </td>
 </tr>
 <tr><td>6 lines</td><td>21 lines</td></tr></tbody></table>
-
-## Requirements
-`goimports` should be installed in the system.
 
 ## Contact
 
