@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	version        = "0.0.6"
+	version        = "0.0.7"
 	startUpMessage = "Go Shell - A Repl for Go"
 	helpMessage    = `Commands:
 	.q(uit)		exit Go Shell
@@ -98,7 +98,8 @@ func main() {
 				}
 				output, err := manager.runProgram()
 				if err != nil {
-					fmt.Println("Removing last input, type '.s(ource)' to see the program.")
+					fmt.Println("Error running the program:", err)
+					fmt.Println("Removing last input, type '.s(ource)' to see the program")
 					manager.removeLastInput()
 				}
 				if output != "" {
