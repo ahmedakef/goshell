@@ -2,8 +2,11 @@ package main
 
 import (
 	"bytes"
-	"os/exec"
+	"fmt"
+	"os"
 	"text/template"
+
+	"golang.org/x/tools/imports"
 )
 
 func prepareProgram(templatePath string, commands []command, functions []function) (string, error) {
@@ -22,15 +25,15 @@ func prepareProgram(templatePath string, commands []command, functions []functio
 }
 
 func formatProgram(programPath string) error {
-	cmd := exec.Command("go", "fmt", programPath)
-	err := cmd.Run()
+
+	output, err := imports.Process(programPath, nil, nil)
 	if err != nil {
+		fmt.Println("Error formatting the program:", err)
 		return err
 	}
-
-	cmd = exec.Command("goimports", "-w", programPath)
-	err = cmd.Run()
+	err = os.WriteFile(programPath, output, 0644)
 	if err != nil {
+		fmt.Println("Error writing the formatted program:", err)
 		return err
 	}
 
