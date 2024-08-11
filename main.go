@@ -113,54 +113,54 @@ func main() {
 
 func waitForInput(commands chan<- string, continueChan <-chan bool, done chan bool, line *liner.State) {
 	for <-continueChan {
-		if command, err := line.Prompt(">>> "); err == nil {
-			if command == "exit" {
-				done <- true
-				return
-			} else if strings.Contains(command, "{") {
-				multiLineCommand := command + "\n"
-				openBrackets := strings.Count(command, "{")
-				openBrackets -= strings.Count(command, "}")
-				userExit := false
-				for {
-					identation := strings.Repeat("    ", openBrackets)
-					if subCommand, err := line.Prompt("... " + identation); err == nil {
-						if subCommand == "" {
-							continue
-						}
-						multiLineCommand += subCommand + "\n"
-						openBrackets += strings.Count(subCommand, "{")
-						openBrackets -= strings.Count(subCommand, "}")
-						if openBrackets == 0 {
-							break
-						}
-					} else if err == io.EOF || err == liner.ErrPromptAborted {
-						userExit = true
-						break
-					} else {
-						fmt.Println("Error reading input: ", err)
-						done <- true
-						return
-					}
-				}
-				if userExit {
-					commands <- ""
-				} else {
-					commands <- multiLineCommand
-					line.AppendHistory(multiLineCommand)
-				}
-			} else {
-				commands <- command
-				if command != "" {
-					line.AppendHistory(command)
-				}
-			}
-		} else if err == liner.ErrPromptAborted || err == io.EOF {
+		command, err := line.Prompt(">>> ")
+		if err == liner.ErrPromptAborted || err == io.EOF {
 			done <- true
 			return
-		} else {
+		} else if err != nil {
 			fmt.Println("Error reading input: ", err)
 			done <- true
+		}
+
+		if command == "exit" {
+			done <- true
+			return
+		}
+		if strings.Contains(command, "{") {
+			multiLineCommand := command + "\n"
+			openBrackets := strings.Count(command, "{")
+			openBrackets -= strings.Count(command, "}")
+			userExit := false
+			for {
+				identation := strings.Repeat("    ", openBrackets)
+				if subCommand, err := line.Prompt("... " + identation); err == nil {
+					if subCommand == "" {
+						continue
+					}
+					multiLineCommand += subCommand + "\n"
+					openBrackets += strings.Count(subCommand, "{")
+					openBrackets -= strings.Count(subCommand, "}")
+					if openBrackets == 0 {
+						break
+					}
+				} else if err == io.EOF || err == liner.ErrPromptAborted {
+					userExit = true
+					break
+				} else {
+					fmt.Println("Error reading input: ", err)
+					done <- true
+					return
+				}
+			}
+			if userExit {
+				command = ""
+			} else {
+				command = multiLineCommand
+			}
+		}
+		commands <- command
+		if command != "" {
+			line.AppendHistory(command)
 		}
 	}
 }
