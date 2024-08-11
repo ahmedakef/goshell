@@ -44,6 +44,15 @@ func TestManager_RunProgram(t *testing.T) {
 			expectedError:  nil,
 		},
 		{
+			name: "slice initialization",
+			input: []string{
+				"a:= []int{1}",
+				"a",
+			},
+			expectedOutput: "[1]\n",
+			expectedError:  nil,
+		},
+		{
 			name: "assignment, experiment, function declaration",
 			input: []string{
 				"a:=1",

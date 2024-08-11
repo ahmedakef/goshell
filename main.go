@@ -126,10 +126,10 @@ func waitForInput(commands chan<- string, continueChan <-chan bool, done chan bo
 			done <- true
 			return
 		}
-		if strings.Contains(command, "{") {
+		openBrackets := strings.Count(command, "{")
+		openBrackets -= strings.Count(command, "}")
+		if openBrackets > 0 {
 			multiLineCommand := command + "\n"
-			openBrackets := strings.Count(command, "{")
-			openBrackets -= strings.Count(command, "}")
 			userExit := false
 			for {
 				identation := strings.Repeat("    ", openBrackets)
