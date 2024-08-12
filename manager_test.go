@@ -49,7 +49,7 @@ func TestManager_RunProgram(t *testing.T) {
 				"a:= []int{1}",
 				"a",
 			},
-			expectedOutput: "[1]\n",
+			expectedOutput: "[]int{1}\n",
 			expectedError:  nil,
 		},
 		{
