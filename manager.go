@@ -183,7 +183,7 @@ func (m *Manager) useCallStatement() command {
 }
 
 func commandPrintted(command string) string {
-	return fmt.Sprintf("fmt.Println(%s)", command)
+	return fmt.Sprintf("fmt.Printf(%s, %s)", "\"%#v\\n\"", command)
 }
 
 func (m *Manager) cleanUp() {
