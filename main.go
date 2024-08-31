@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	version        = "0.0.8"
+	version        = "0.0.9"
 	startUpMessage = "Go Shell - A Repl for Go"
 	helpMessage    = `Commands:
 	.q(uit)		exit Go Shell

@@ -71,6 +71,16 @@ func TestManager_RunProgram(t *testing.T) {
 			expectedOutput: "3\n",
 			expectedError:  nil,
 		},
+		{
+			name: "slice indexin",
+			input: []string{
+				"a:= []int{1}",
+				"a[0] = 2",
+				"a[0]",
+			},
+			expectedOutput: "2\n",
+			expectedError:  nil,
+		},
 	}
 
 	for _, tt := range tests {
