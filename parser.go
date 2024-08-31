@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -66,7 +67,16 @@ func (av *AstVisitor) Visit(node ast.Node) ast.Visitor {
 	switch node := node.(type) {
 	case *ast.AssignStmt:
 		for _, each := range node.Lhs {
-			av.VariablesAssigned = append(av.VariablesAssigned, each.(*ast.Ident).Name)
+			// assert on each type
+			switch v := each.(type) {
+			case *ast.Ident:
+				av.VariablesAssigned = append(av.VariablesAssigned, v.Name)
+			case *ast.IndexExpr:
+				// like a[0] = 1
+				// variable already assigned
+			default:
+				fmt.Printf("I don't know about type %T!\n", each)
+			}
 		}
 	case *ast.DeclStmt:
 		for _, each := range node.Decl.(*ast.GenDecl).Specs {
